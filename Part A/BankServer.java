@@ -32,7 +32,6 @@ public class BankServer {
     catch (IOException e) {
         e.printStackTrace();
     }
-    
   }
 
   private static class ClientHandler extends Thread {
@@ -109,7 +108,7 @@ public class BankServer {
 
           objectOStream.writeObject(response);
           objectOStream.flush();
-          ServerLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), request.getAmount(), response.getStatus());
+          ServerLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), response.getBalance(), response.getStatus());
 
           
         } catch (IOException | ClassNotFoundException e) {

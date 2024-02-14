@@ -48,24 +48,24 @@ public class BankClient {
     List<Integer> UIDs = new ArrayList<>();
 
     for (int i = 0; i < 100; i++) {
-        Request request = new Request("CreateAccount", 0, 0, 0);
+        Request request = new Request("CreateAccount", 0, -1, 0);
         Response response = bankClient.sendRequest(request);
         UIDs.add(response.getBalance());
         ClientLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), request.getAmount(), response.getStatus());
     }
 
     for (Integer UID : UIDs) {
-        Request request = new Request("Deposit", UID, 0, 100);
+        Request request = new Request("Deposit", UID, -1, 100);
         Response response = bankClient.sendRequest(request);
         ClientLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), request.getAmount(), response.getStatus());
     }
 
     int totalAccountsBalance = 0;
     for (Integer UID : UIDs) {
-        Request request = new Request("GetBalance", UID, 0, 0);
+        Request request = new Request("GetBalance", UID, -1, 0);
         Response response = bankClient.sendRequest(request);
         totalAccountsBalance += response.getBalance();
-        ClientLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), request.getAmount(), response.getStatus());
+        ClientLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), response.getBalance(), response.getStatus());
     }
 
     System.out.println("The Total Account Balance is: " + totalAccountsBalance);
@@ -85,7 +85,7 @@ public class BankClient {
                 ClientLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), request.getAmount(), response.getStatus());
 
                 if ("FAILED".equals(response.getStatus())) {
-                    System.out.println("Failed transfer");
+                    System.out.println("Failed transfer from " + sourceAcountUID + " to " + targetAccountUID);
                 }
             }
         });
@@ -104,9 +104,10 @@ public class BankClient {
 
     totalAccountsBalance = 0;
     for (Integer UID : UIDs) {
-        Request request = new Request("GetBalance", UID, 0, 0);
+        Request request = new Request("GetBalance", UID, -1, 0);
         Response response = bankClient.sendRequest(request);
         totalAccountsBalance += response.getBalance();
+        ClientLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), response.getBalance(), response.getStatus());
     }
     System.out.println("After Threads, The Total Account Balance is: " + totalAccountsBalance);
 }

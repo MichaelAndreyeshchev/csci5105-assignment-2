@@ -9,7 +9,7 @@ import java.util.Date;
 import java.net.*;
 
 public class RMIBankServerImp implements RMIBankServer {
-    private static int port = 1099;
+    private static int port = 1099; // RMI port
     private static final ConcurrentHashMap<Integer, Account> accounts = new ConcurrentHashMap<>();
     private static final AtomicInteger accountUIDCounter = new AtomicInteger(1);
 
@@ -28,6 +28,7 @@ public class RMIBankServerImp implements RMIBankServer {
             Registry localRegistry = LocateRegistry.getRegistry(port);
             localRegistry.unbind ("RMIBankServer");
             UnicastRemoteObject.unexportObject(this, true);
+            System.out.println("RMI Server Port Shutdown Completed!");
             //System.exit(0);
         }
 
@@ -40,7 +41,7 @@ public class RMIBankServerImp implements RMIBankServer {
         int sourceAcountUID = accountUIDCounter.getAndIncrement();
         Account account = new Account(sourceAcountUID);
         accounts.put(sourceAcountUID, account);
-        ServerLogger.log("CreateAccount", sourceAcountUID, 0, 0, "OK");
+        ServerLogger.log("CreateAccount", sourceAcountUID, -1, 0, "OK");
 
         return sourceAcountUID;
     }
@@ -50,12 +51,12 @@ public class RMIBankServerImp implements RMIBankServer {
 
         if (account != null) {
             account.deposit(amount);
-            ServerLogger.log("Deposit", sourceAcountUID, 0, amount, "OK");
+            ServerLogger.log("Deposit", sourceAcountUID, -1, amount, "OK");
             return "OK";
         }
 
         else {
-            ServerLogger.log("Deposit", sourceAcountUID, 0, amount, "FAILED");
+            ServerLogger.log("Deposit", sourceAcountUID, -1, amount, "FAILED");
             return "FAILED";
         }
     }
@@ -64,12 +65,13 @@ public class RMIBankServerImp implements RMIBankServer {
         Account account = accounts.get(sourceAcountUID);
 
         if (account != null) {
-            ServerLogger.log("GetBalance", sourceAcountUID, 0, 0, "OK");
-            return account.getBalance();
+            int balance = account.getBalance();
+            ServerLogger.log("GetBalance", sourceAcountUID, -1, balance, "OK");
+            return balance;
         }
 
         else {
-            ServerLogger.log("Deposit", sourceAcountUID, 0, 0, "FAILED");
+            ServerLogger.log("Deposit", sourceAcountUID, -1, -1, "FAILED");
             return -1;
         }
     }
@@ -92,20 +94,22 @@ public class RMIBankServerImp implements RMIBankServer {
 
     public static void main (String args[]) throws Exception {
         if ( args.length == 0 ) {
+            Registry localRegistry = LocateRegistry.createRegistry(1099);
             RMIBankServerImp bankServer = new RMIBankServerImp();
             System.setProperty("java.rmi.server.hostname", InetAddress.getLocalHost().getCanonicalHostName());
             RMIBankServer bankServerStub = (RMIBankServer) UnicastRemoteObject.exportObject(bankServer, 0) ;
-            Naming.bind("RMIBankServer", bankServerStub);
+            Naming.bind("//" + InetAddress.getLocalHost().getCanonicalHostName() + ":" + 1099 + "/RMIBankServer", bankServerStub);
         }
         else {
            // rmiregistry is on port specified in args[0]. Bind to that registry.
-           Registry localRegistry = LocateRegistry.getRegistry(Integer.parseInt( args[0] ));
+           //Registry localRegistry = LocateRegistry.getRegistry(Integer.parseInt( args[0] ));
+           Registry localRegistry = LocateRegistry.createRegistry(Integer.parseInt( args[0] ));
            RMIBankServerImp bankServer = new RMIBankServerImp(Integer.parseInt( args[0] ));
            System.setProperty("java.rmi.server.hostname", InetAddress.getLocalHost().getCanonicalHostName());
            RMIBankServer bankServerStub = (RMIBankServer) UnicastRemoteObject.exportObject(bankServer, 0) ;
-           localRegistry.bind("RMIBankServer", bankServerStub);
+           //localRegistry.bind("//" + InetAddress.getLocalHost().getHostAddress() + ":" + args[0] + "/RMIBankServer", bankServerStub);
+           Naming.bind("//" + InetAddress.getLocalHost().getCanonicalHostName() + ":" + args[0] + "/RMIBankServer", bankServerStub);
         }
-    
         System.out.println("Started RMIBankServer on host: " + InetAddress.getLocalHost().getCanonicalHostName());
       }
 }
