@@ -1,3 +1,5 @@
+Group members: Michael and Wyatt (andr0821 & rasmu984)
+
 # Running Part A:
 ```
 $ javac *.java
