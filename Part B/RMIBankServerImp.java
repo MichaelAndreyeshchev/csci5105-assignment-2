@@ -17,9 +17,9 @@ public class RMIBankServerImp implements RMIBankServer {
         super();
     }
 
-    public RMIBankServerImp(int port) throws RemoteException {
+    public RMIBankServerImp(int rmiport) throws RemoteException {
         super();
-        port = port;
+        port = rmiport;
     }
 
     public void shutdown() throws RemoteException { // unbinds the server from the RMI registry and unexports the RMI object, effectively shutting down the server
