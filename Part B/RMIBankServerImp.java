@@ -25,7 +25,7 @@ public class RMIBankServerImp implements RMIBankServer {
     public void shutdown() throws RemoteException { // unbinds the server from the RMI registry and unexports the RMI object, effectively shutting down the server
         try {
             System.out.println("Server is terminating.");
-            Registry localRegistry = LocateRegistry.getRegistry(port);
+            Registry localRegistry = LocateRegistry.getRegistry(InetAddress.getLocalHost().getCanonicalHostName(), port);
             localRegistry.unbind ("RMIBankServer");
             UnicastRemoteObject.unexportObject(this, true);
             System.out.println("RMI Server Port Shutdown Completed!");
