@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 # Running Part A: 3
+=======
+Group members: Michael and Wyatt (andr0821 & rasmu984)
+
+# Running Part A:
+>>>>>>> 32d53a4b7581481a2b2d0ef821c7b6d849672688
 ```
 $ javac *.java
 
