@@ -1,3 +1,5 @@
+// andr0821 and rasmu984
+
 import java.net.*;
 import java.io.*;
 import java.util.*;
@@ -40,43 +42,41 @@ public class BankClient {
     int serverPort = Integer.parseInt( args[1] );
     int threads = Integer.parseInt( args[2] );
     int iterations = Integer.parseInt( args[3] );
-    //System.out.println ("Connecting to " + host + ":" + port + "..");
 
     BankClient bankClient = new BankClient(serverHost, serverPort);
-    //System.out.println ("Connected.");
 
     List<Integer> UIDs = new ArrayList<>();
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++) { // creates 100 accounts by sending CreateAccount requests to the server, logging each operation, and storing the received account UIDs
         Request request = new Request("CreateAccount", 0, -1, 0);
         Response response = bankClient.sendRequest(request);
         UIDs.add(response.getBalance());
-        ClientLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), request.getAmount(), response.getStatus());
+        ClientLogger.log(request.getOperation(), i+1, request.getTargetAcountUID(), request.getAmount(), response.getStatus());
     }
 
-    for (Integer UID : UIDs) {
+    for (Integer UID : UIDs) { // deposits 100 into each created account and logs the operation
         Request request = new Request("Deposit", UID, -1, 100);
         Response response = bankClient.sendRequest(request);
         ClientLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), request.getAmount(), response.getStatus());
     }
 
     int totalAccountsBalance = 0;
-    for (Integer UID : UIDs) {
+    for (Integer UID : UIDs) { // fetches and sums up the balances of all created accounts, logging each operation
         Request request = new Request("GetBalance", UID, -1, 0);
         Response response = bankClient.sendRequest(request);
         totalAccountsBalance += response.getBalance();
         ClientLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), response.getBalance(), response.getStatus());
     }
 
-    System.out.println("The Total Account Balance is: " + totalAccountsBalance);
+    System.out.println("Step #3: The Total Account Balance (Before Threading) is: " + totalAccountsBalance);
 
     Random random = new Random();
-    ExecutorService executor = Executors.newFixedThreadPool(threads);
+    ExecutorService executor = Executors.newFixedThreadPool(threads); // fixed thread pool size
     int UIDsSize = UIDs.size();
 
     for (int i = 0; i < threads; i++) {
         executor.submit(() -> {
-            for (int k = 0; k < iterations; k++) {
+            for (int k = 0; k < iterations; k++) { // each thread performs multiple iterations of transferring a small amount between randomly selected accounts, logging each operation
                 int sourceAcountUID = UIDs.get(random.nextInt(UIDsSize));
                 int targetAccountUID = UIDs.get(random.nextInt(UIDsSize));
                 
@@ -91,10 +91,10 @@ public class BankClient {
         });
     }
 
-    executor.shutdown(); // DOUBLE CHECK: STEP # 5
+    executor.shutdown(); // shuts down the executor service
 
     try {
-        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); // DOUBLE CHECK: STEP #6
+        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); // waits for all tasks to complete
     }
 
     catch (InterruptedException e) {
@@ -102,13 +102,13 @@ public class BankClient {
         System.out.println("Thread was interrupted!");
     }
 
-    totalAccountsBalance = 0;
+    totalAccountsBalance = 0; // after all threads have completed their tasks, it calculates and prints the total balance across all accounts again
     for (Integer UID : UIDs) {
         Request request = new Request("GetBalance", UID, -1, 0);
         Response response = bankClient.sendRequest(request);
         totalAccountsBalance += response.getBalance();
         ClientLogger.log(request.getOperation(), request.getSourceAcountUID(), request.getTargetAcountUID(), response.getBalance(), response.getStatus());
     }
-    System.out.println("After Threads, The Total Account Balance is: " + totalAccountsBalance);
+    System.out.println("Step #7: The Total Account Balance (After Threading) is: " + totalAccountsBalance);
 }
 }

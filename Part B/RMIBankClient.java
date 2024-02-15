@@ -6,7 +6,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.rmi.RemoteException;
 import java.rmi.Naming;
-import java.util.Date;
 import java.net.*;
 import java.io.*;
 import java.util.*;
@@ -30,13 +29,13 @@ public class RMIBankClient {
 
             List<Integer> UIDs = new ArrayList<>();
 
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 100; i++) { // creates 100 accounts by sending CreateAccount requests to the server, logging each operation, and storing the received account UIDs
                 int UID = bankServerStub.createAccount();
                 UIDs.add(UID);
                 ClientLogger.log("CreateAccount", UID, -1, 0, "OK");
             }
 
-            for (Integer UID : UIDs) {
+            for (Integer UID : UIDs) { // deposits 100 into each created account and logs the operation
                 String status = bankServerStub.deposit(UID, 100);
 
                 if ("OK".equals(status)) {
@@ -49,7 +48,7 @@ public class RMIBankClient {
             }
 
             int totalAccountsBalance = 0;
-            for (Integer UID : UIDs) {
+            for (Integer UID : UIDs) { // fetches and sums up the balances of all created accounts, logging each operation
                 int balance = bankServerStub.getBalance(UID);
                 totalAccountsBalance += balance;
                 if (balance != -1) {
@@ -61,15 +60,15 @@ public class RMIBankClient {
                 }
             }
 
-            System.out.println("The Total Account Balance is: " + totalAccountsBalance);
+            System.out.println("Step #3: The Total Account Balance (Before Threading) is: " + totalAccountsBalance);
 
             Random random = new Random();
-            ExecutorService executor = Executors.newFixedThreadPool(threads);
+            ExecutorService executor = Executors.newFixedThreadPool(threads); // fixed thread pool size
             int UIDsSize = UIDs.size();
             
             for (int i = 0; i < threads; i++) {
                 executor.submit(() -> {
-                    for (int k = 0; k < iterations; k++) {
+                    for (int k = 0; k < iterations; k++) { // each thread performs multiple iterations of transferring a small amount between randomly selected accounts, logging each operation
                         int sourceAcountUID = UIDs.get(random.nextInt(UIDsSize));
                         int targetAccountUID = UIDs.get(random.nextInt(UIDsSize));
                         
@@ -107,7 +106,7 @@ public class RMIBankClient {
             }
             
             totalAccountsBalance = 0;
-            for (int UID : UIDs) {
+            for (int UID : UIDs) { // after all threads have completed their tasks, it calculates and prints the total balance across all accounts again
                 int balance = bankServerStub.getBalance(UID);
                 totalAccountsBalance += balance;
                 if (balance != -1) {
@@ -115,10 +114,10 @@ public class RMIBankClient {
                 }
 
                 else {
-                    ClientLogger.log("GetBalance", UID, -1, balance, "FAILED");
+                    ClientLogger.log("GetBalance", UID, -1, -1, "FAILED");
                 }
             }
-            System.out.println("After Threads, The Total Account Balance is: " + totalAccountsBalance);
+            System.out.println("Step #7: The Total Account Balance (After Threading) is: " + totalAccountsBalance);
             bankServerStub.shutdown();   
         }
 

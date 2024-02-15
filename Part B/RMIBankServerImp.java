@@ -10,8 +10,8 @@ import java.net.*;
 
 public class RMIBankServerImp implements RMIBankServer {
     private static int port = 1099; // RMI port
-    private static final ConcurrentHashMap<Integer, Account> accounts = new ConcurrentHashMap<>();
-    private static final AtomicInteger accountUIDCounter = new AtomicInteger(1);
+    private static final ConcurrentHashMap<Integer, Account> accounts = new ConcurrentHashMap<>(); // ConcurrentHashMap that maps unique account IDs to Account objects, representing the bank accounts managed by the server
+    private static final AtomicInteger accountUIDCounter = new AtomicInteger(1); // generate unique IDs for new accounts, starting from 1
 
     public RMIBankServerImp() throws RemoteException {
         super();
@@ -22,7 +22,7 @@ public class RMIBankServerImp implements RMIBankServer {
         port = port;
     }
 
-    public void shutdown() throws RemoteException {
+    public void shutdown() throws RemoteException { // unbinds the server from the RMI registry and unexports the RMI object, effectively shutting down the server
         try {
             System.out.println("Server is terminating.");
             Registry localRegistry = LocateRegistry.getRegistry(port);
@@ -37,7 +37,7 @@ public class RMIBankServerImp implements RMIBankServer {
         }
     }
 
-    public int createAccount() throws RemoteException { // consider catching NullPointerException
+    public int createAccount() throws RemoteException { // generates a unique ID for a new account, creates an account, logs the operation, and stores it in the accounts map
         int sourceAcountUID = accountUIDCounter.getAndIncrement();
         Account account = new Account(sourceAcountUID);
         accounts.put(sourceAcountUID, account);
@@ -46,7 +46,7 @@ public class RMIBankServerImp implements RMIBankServer {
         return sourceAcountUID;
     }
 
-    public String deposit(int sourceAcountUID, int amount) throws RemoteException {
+    public String deposit(int sourceAcountUID, int amount) throws RemoteException { // adds a specified amount to an existing account and logs the operation
         Account account = accounts.get(sourceAcountUID);
 
         if (account != null) {
@@ -61,7 +61,7 @@ public class RMIBankServerImp implements RMIBankServer {
         }
     }
 
-    public int getBalance(int sourceAcountUID) throws RemoteException {
+    public int getBalance(int sourceAcountUID) throws RemoteException { // retrieves the balance of a specified account and logs the operation
         Account account = accounts.get(sourceAcountUID);
 
         if (account != null) {
@@ -71,12 +71,12 @@ public class RMIBankServerImp implements RMIBankServer {
         }
 
         else {
-            ServerLogger.log("Deposit", sourceAcountUID, -1, -1, "FAILED");
+            ServerLogger.log("GetBalance", sourceAcountUID, -1, -1, "FAILED");
             return -1;
         }
     }
 
-    public String transfer(int sourceAcountUID, int targetAccountUID, int amount) throws RemoteException {
+    public String transfer(int sourceAcountUID, int targetAccountUID, int amount) throws RemoteException { // transfers funds from one account to another if sufficient funds are available and logs the operation.
         Account account = accounts.get(sourceAcountUID);
         Account targetAccount = accounts.get(targetAccountUID);
 

@@ -1,10 +1,12 @@
+// andr0821 and rasmu984
+
 import java.io.*;
 
 public class Request implements Serializable {
-    private String operation;
-    private int sourceAcountUID;
-    private int targetAccountUID;
-    private int amount;
+    private String operation; // name of the requested operation
+    private int sourceAcountUID; // account UID for source
+    private int targetAccountUID; // account UID for target
+    private int amount; 
 
     public Request(String operation, int sourceAcountUID, int targetAccountUID, int amount) {
         this.operation = operation;
